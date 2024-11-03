@@ -291,7 +291,7 @@ def demo(args):
                 [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
     kpt_color = palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
     limb_color = palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
-    model = torch.load('./weights/best.pt', map_location='cuda')['model'].float()
+    model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
     stride = int(max(model.stride.cpu().numpy()))
 
     model.half()
@@ -331,7 +331,7 @@ def demo(args):
             image = numpy.ascontiguousarray(image)
             image = torch.from_numpy(image)
             image = image.unsqueeze(dim=0)
-            image = image.cuda()
+            # image = image.cuda()
             image = image.half()
             image = image / 255
             # Inference
@@ -442,7 +442,7 @@ def main():
     args.world_size = int(os.getenv('WORLD_SIZE', 1))
 
     if args.world_size > 1:
-        torch.cuda.set_device(device=args.local_rank)
+        torch.cuda.set_device(device=-1)
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
 
     if args.local_rank == 0:
