@@ -56,7 +56,10 @@ def save_model_to_onnx(
 weight_path = '../weights/best.pt'
 output_path = '../weights/best.onnx'
 dummy_input = torch.randn(1, 3,480, 640)
-model = torch.load(weight_path, map_location='cpu')['model'].float()
+if torch.cuda.is_available():
+    model = torch.load(weight_path, map_location='gpu')['model'].float()
+else:
+    model = torch.load(weight_path, map_location='cpu')['model'].float()
 
 save_model_to_onnx(model,
                         output_path,
