@@ -1,4 +1,7 @@
-./*.pt
+*.pt
+!weights/*.pt
 *.jpg
-
+!data/*.jpg
+*.onnx
+!weights/*.onnx
 runs/*

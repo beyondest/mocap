@@ -1,6 +1,7 @@
 import sys
-sys.path.append('../')
-from params import *
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from myscripts.params import *
 import argparse
 import os
 import warnings
@@ -13,7 +14,7 @@ import cv2
 import time
 from nets import nn
 from utils import util
-from myscripts.mocap_onnx import Onnx_Engine
+from myscripts.tools import Onnx_Engine
 warnings.filterwarnings("ignore")
 
 
@@ -29,9 +30,18 @@ def demo(args):
                            [255, 153, 153], [255, 102, 102], [255, 51, 51], [153, 255, 153], [102, 255, 102],
                            [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0], [255, 255, 255]],
                           dtype=numpy.uint8)
+    # which 2 keypoint will bind together to form a limb
     skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9],
                 [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
-    kpt_color = palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
+    # keypoint color
+    # 17 keypoints
+    kpt_color = palette[[16, 16, 16,
+                         16, 16,  0,
+                         0,   0,  0, 
+                         0,   0,  9,
+                         9,   9,  9, 
+                         9,   9]]
+    # limb color
     limb_color = palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
     model = torch.load(weights_file, map_location='cpu')['model'].float()
     stride = int(max(model.stride.cpu().numpy()))
@@ -51,6 +61,7 @@ def demo(args):
             t1 = time.perf_counter()
             success, frame = camera.read()
             if success:
+                print(frame.shape)
                 image = frame.copy()
                 shape = image.shape[:2]  # current shape [height, width]
                 r = min(1.0, args.input_size / shape[0], args.input_size / shape[1])
@@ -74,7 +85,7 @@ def demo(args):
                 # Convert HWC to CHW, BGR to RGB
                 image = image.transpose((2, 0, 1))[::-1]
                 image = numpy.ascontiguousarray(image)
-                
+                print(image.shape)
                 # Inference
                 
                 if USE_ONNX:
