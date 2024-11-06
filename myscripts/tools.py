@@ -3,6 +3,8 @@ import onnx
 import onnxruntime
 import os
 import cv2
+
+
 class Onnx_Engine:
     class Standard_Data:
         def __init__(self) -> None:
@@ -31,13 +33,10 @@ class Onnx_Engine:
             
         custom_session_options.enable_profiling = False          #enable or disable profiling of model
         #custom_session_options.execution_mode =onnxruntime.ExecutionMode.ORT_PARALLEL       #ORT_PARALLEL | ORT_SEQUENTIAL
-       
         #custom_session_options.inter_op_num_threads = 2                                     #default is 0
         #custom_session_options.intra_op_num_threads = 2                                     #default is 0
         custom_session_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL # DISABLE_ALL |ENABLE_BASIC |ENABLE_EXTENDED |ENABLE_ALL
         custom_providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']       # if gpu, cuda first, or will use cpu
-        
-        
         self.user_data = self.Standard_Data()  
         self.ort_session = onnxruntime.InferenceSession(filename,
                                                         sess_options=custom_session_options,
@@ -116,3 +115,25 @@ def resize_image(frame, target_size=(480, 640), stride=32):
     image = np.ascontiguousarray(image)
 
     return image
+
+
+
+class GetKeypoint():
+    NOSE:           int = 0
+    LEFT_EYE:       int = 1
+    RIGHT_EYE:      int = 2
+    LEFT_EAR:       int = 3
+    RIGHT_EAR:      int = 4
+    LEFT_SHOULDER:  int = 5
+    RIGHT_SHOULDER: int = 6
+    LEFT_ELBOW:     int = 7
+    RIGHT_ELBOW:    int = 8
+    LEFT_WRIST:     int = 9
+    RIGHT_WRIST:    int = 10
+    LEFT_HIP:       int = 11
+    RIGHT_HIP:      int = 12
+    LEFT_KNEE:      int = 13
+    RIGHT_KNEE:     int = 14
+    LEFT_ANKLE:     int = 15
+    RIGHT_ANKLE:    int = 16
+

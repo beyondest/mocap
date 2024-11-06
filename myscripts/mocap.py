@@ -16,7 +16,7 @@ from nets import nn
 from utils import util
 from myscripts.tools import Onnx_Engine
 warnings.filterwarnings("ignore")
-
+numpy.set_printoptions(precision=3)
 
 
 
@@ -61,7 +61,6 @@ def demo(args):
             t1 = time.perf_counter()
             success, frame = camera.read()
             if success:
-                print(frame.shape)
                 image = frame.copy()
                 shape = image.shape[:2]  # current shape [height, width]
                 r = min(1.0, args.input_size / shape[0], args.input_size / shape[1])
@@ -85,7 +84,6 @@ def demo(args):
                 # Convert HWC to CHW, BGR to RGB
                 image = image.transpose((2, 0, 1))[::-1]
                 image = numpy.ascontiguousarray(image)
-                print(image.shape)
                 # Inference
                 
                 if USE_ONNX:

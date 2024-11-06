@@ -52,11 +52,11 @@ def demo(args):
 
     model.half()
     model.eval()
-
-            
+    
     image = frame.copy()
     shape = image.shape[:2]  # current shape [height, width]
     image = resize_image(image,target_size=(480,640))
+    
     # Inference
     
     if USE_ONNX:
@@ -164,7 +164,7 @@ def profile(args, params):
 
 
 def main():
-    img_path = 'D:/VS_ws/python/mocap/bus.jpg'
+    img_path = 'D:/VS_ws/python/mocap/myscripts/data/Bear2.jpg'
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-size', default=input_size, type=int)
     parser.add_argument('--local_rank', default=0, type=int)
