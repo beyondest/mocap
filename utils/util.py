@@ -116,51 +116,62 @@ def compute_metric(output, target, iou_v, pred_kpt=None, true_kpt=None):
     return torch.tensor(correct, dtype=torch.bool, device=output.device)
 
 
-def non_max_suppression(outputs, conf_threshold, iou_threshold, nc):
+def non_max_suppression(outputs, conf_threshold, iou_threshold, nc)->list:
+    """
+    Perform Non-Maximum Suppression (NMS) on inference results.
+    # Arguments
+        outputs:  Model output [1, 5 + 51, 6300] for mocap.
+        conf_threshold:  Object confidence threshold (float).
+        iou_threshold:  IoU threshold for NMS (float).
+        nc:  Number of classes (int), 1 for mocap, only human class.
+    # Returns
+        List: [Batch0, Batch1,..., BatchN],Tensor Batchi.shape = (bbox_num, 6 + 51) for mocap, 6 = 4 + 1 + 1, 4 is bbox, 1 is conf, 1 is cls human, 51 is mask
+    """
     max_wh = 7680
     max_det = 300
     max_nms = 30000
 
-    bs = outputs.shape[0]  # batch size
-    nc = nc or (outputs.shape[1] - 4)  # number of classes
-    nm = outputs.shape[1] - nc - 4
-    mi = 4 + nc  # mask start index
-    xc = outputs[:, 4:mi].amax(1) > conf_threshold  # candidates
+    bs = outputs.shape[0]  # batch size , 1 for mocap
+    nc = nc or (outputs.shape[1] - 4)  # number of classes , 1 for mocap, refer to human
+    nm = outputs.shape[1] - nc - 4 # number of masks, 56 - 1 - 4 = 51 for mocap
+    mi = 4 + nc  # mask start index, 4 + 1 = 5 for mocap
+    xc = outputs[:, 4:mi].amax(1) > conf_threshold  # candidates, xc.shape = (bs, results), (1, 6300) for mocap, full of True or False
 
     # Settings
     time_limit = 0.5 + 0.05 * bs  # seconds to quit after
     t = time.time()
-    output = [torch.zeros((0, 6 + nm), device=outputs.device)] * bs
-    for index, x in enumerate(outputs):  # image index, image inference
-        x = x.transpose(0, -1)[xc[index]]  # confidence
+    output = [torch.zeros((0, 6 + nm), device=outputs.device)] * bs # blank output for nms_results, [A] * 2 = [A, A], A.shape = (0, 6 + 51) for mocap
+    for index, x in enumerate(outputs):  # image index, image inference, index is batchindex for mocap , which means 0
+        x = x.transpose(0, -1)[xc[index]]  # x.transpose(0, -1) is (6300, 56) for mocap, this will select the candidates which is true in xc[index]
 
-        # If none remain process next image
+        # If none remain process next image, means all candidates are false
         if not x.shape[0]:
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, nm), 1)
-        box = wh2xy(box)  # center_x, center_y, width, height) to (x1, y1, x2, y2)
+        box, cls, mask = x.split((4, nc, nm), 1) # split the tensor into 3 parts in axis 1, box, cls, mask, box.shape = (candidates_num, 4), cls.shape = (candidates_num, 1), mask.shape = (candidates_num, 51)
+        box = wh2xy(box)  # center_x, center_y, width, height) to (x1, y1, x2, y2), xy1 is top-left, xy2 is bottom-right
         if nc > 1:
             i, j = (cls > conf_threshold).nonzero(as_tuple=False).T
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
         else:  # best class only
-            conf, j = cls.max(1, keepdim=True)
-            x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_threshold]
+            conf, j = cls.max(1, keepdim=True)   # conf.shape = (candidates_num, 1), j.shape = (candidates_num, 1), j is the index of the best class, 0 for mocap
+            x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_threshold] # dulpicated filter by conf_threshold, it has already been filtered by conf_threshold in xc[index]
+                                                                                           # x.shape = (candidates_num, 6 + 51) for mocap, 4 for box, 1 for conf, 1 for cls, 51 for mask
 
         # Check shape
         n = x.shape[0]  # number of boxes
         if not n:  # no boxes
             continue
-        x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence and remove excess boxes
+        x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by conf of class (human for mocap) and remove excess boxes(only keep max_nms candidates)
 
         # Batched NMS
-        c = x[:, 5:6] * max_wh  # classes
+        c = x[:, 5:6] * max_wh  # classes, for mocap, human class is 0, so cls * max_wh = 0, offset is 0. for other situation, offset makes iou wont remove different class boxes in same position
         boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
-        i = torchvision.ops.nms(boxes, scores, iou_threshold)  # NMS
+        i = torchvision.ops.nms(boxes, scores, iou_threshold)  # remove overlap boxes, i is the index of the no_overlap boxes in different classes
         i = i[:max_det]  # limit detections
 
-        output[index] = x[i]
+        output[index] = x[i] # save results in to batch index of output, for mocap, index is 0
         if (time.time() - t) > time_limit:
             break  # time limit exceeded
 

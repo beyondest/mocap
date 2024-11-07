@@ -1,10 +1,4 @@
-*.pt
-!weights/*.pt
-*.jpg
-!data/*.jpg
-*.onnx
-!weights/*.onnx
-runs/*
-
+__pycache__/
+*.pyc
 
 
