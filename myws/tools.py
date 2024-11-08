@@ -11,6 +11,7 @@ try:
     import tensorrt as trt
     import pycuda.driver as cuda
     import pycuda.autoinit
+    
 except ImportError as e:
     print(e)
     print("Please install tensorrt and pycuda")
@@ -442,7 +443,7 @@ def maxmium_performance():
     environ.pop('MKL_NUM_THREADS', None)  # Remove if it exists
 
 
-class GetKeypoint():
+class Yolov8_Keypoints():
     NOSE: int = 0
     LEFT_EYE: int = 1
     RIGHT_EYE: int = 2
@@ -460,3 +461,44 @@ class GetKeypoint():
     RIGHT_KNEE: int = 14
     LEFT_ANKLE: int = 15
     RIGHT_ANKLE: int = 16
+
+
+
+
+# Define Human3.6M-to-YOLOv8 keypoint index mapping
+h36m_to_yolo = {
+    1: 11,   # left_hip_extra -> LEFT_HIP
+    2: 13,   # left_knee -> LEFT_KNEE
+    3: 15,   # left_ankle -> LEFT_ANKLE
+    4: 12,   # right_hip_extra -> RIGHT_HIP
+    5: 14,   # right_knee -> RIGHT_KNEE
+    6: 16,   # right_ankle -> RIGHT_ANKLE
+    9: 0,    # head_extra -> NOSE
+    11: 5,   # left_shoulder -> LEFT_SHOULDER
+    12: 7,   # left_elbow -> LEFT_ELBOW
+    13: 9,   # left_wrist -> LEFT_WRIST
+    14: 6,   # right_shoulder -> RIGHT_SHOULDER
+    15: 8,   # right_elbow -> RIGHT_ELBOW
+    16: 10   # right_wrist -> RIGHT_WRIST
+}
+
+
+
+# Define YOLOv8 to Human3.6M keypoint index mapping
+yolo_to_h36m = {
+    0: 9,    # NOSE -> head_extra
+    5: 11,   # LEFT_SHOULDER -> left_shoulder
+    6: 14,   # RIGHT_SHOULDER -> right_shoulder
+    7: 12,   # LEFT_ELBOW -> left_elbow
+    8: 15,   # RIGHT_ELBOW -> right_elbow
+    9: 13,   # LEFT_WRIST -> left_wrist
+    10: 16,  # RIGHT_WRIST -> right_wrist
+    11: 1,   # LEFT_HIP -> left_hip_extra
+    12: 4,   # RIGHT_HIP -> right_hip_extra
+    13: 2,   # LEFT_KNEE -> left_knee
+    14: 5,   # RIGHT_KNEE -> right_knee
+    15: 3,   # LEFT_ANKLE -> left_ankle
+    16: 6    # RIGHT_ANKLE -> right_ankle
+}
+
+
