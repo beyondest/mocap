@@ -11,8 +11,8 @@ import torch
 from tools import *
 from matplotlib.gridspec import GridSpec
 
-datapath = 'd:/VS_ws/python/GridConv/src/data/gt/test_custom_3d_unnorm.pth.tar'
-data2dpath = 'd:/VS_ws/python/GridConv/src/data/gt/test_custom_2d_unnorm.pth.tar'
+datapath = "D:/Datasets/h36m/gt/test_custom_3d_unnorm.pth.tar"
+data2dpath = "D:/Datasets/h36m/gt/test_custom_2d_unnorm.pth.tar"
 key = ('S11', 'Walking', 'Walking.60457274')
 njoints = 17
 
