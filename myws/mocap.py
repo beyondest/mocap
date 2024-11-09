@@ -34,9 +34,9 @@ def main():
     else:
         pass
 
-    skeleton = Kpt.Yolov8.skeleton
-    kpt_color = Kpt.Yolov8.kpt_color
-    limb_color = Kpt.Yolov8.limb_color
+    skeleton = Kpt.Yolov8.skeleton if not TRANS_H36M else Kpt.H36M.skeleton
+    kpt_color = Kpt.Yolov8.kpt_color if not TRANS_H36M else Kpt.H36M.kpt_color
+    limb_color = Kpt.Yolov8.limb_color if not TRANS_H36M else Kpt.H36M.limb_color
     model = torch.load(weights_file, map_location='cpu')['model'].float()
     stride = int(max(model.stride.cpu().numpy()))
 
@@ -87,6 +87,10 @@ def main():
                 # NMS
                 outputs = non_max_suppression(outputs, 0.25, 0.7, model.head.nc)
                 box_output, kps_output = pose_estimation_postprocess(outputs,image,frame,model)
+                box_output = box_output.numpy()
+                kps_output = kps_output.numpy()
+                if TRANS_H36M:
+                    kps_output = Kpt.tran_yolo_to_h36m(kps_output)
                 if VISUALIZE_DRAW:
                     visualize_detections(frame,box_output,kps_output,kpt_color,skeleton,limb_color)
                 if VISUALIZE_PLOT:

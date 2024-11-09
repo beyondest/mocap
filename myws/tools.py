@@ -243,11 +243,11 @@ def resize_image(image:np.ndarray, target_size=(480, 640), stride=32, if_use_str
 
 
 def visualize_detections(frame:np.ndarray,
-                         box_output, 
-                         kps_output,
-                         kpt_color,
-                         skeleton,
-                         limb_color):
+                         box_output:np.ndarray, 
+                         kps_output:np.ndarray,
+                         kpt_color:list,
+                         skeleton:list,
+                         limb_color:list):
     """
     Visualizes conf > 0.5 bounding boxes and keypoints on the given frame.
 
@@ -268,7 +268,6 @@ def visualize_detections(frame:np.ndarray,
     shape = frame.shape[:2]
     # Draw bounding boxes
     for box in box_output:
-        box = box.cpu().numpy()
         x1, y1, x2, y2, score, index = box
         cv2.rectangle(frame,
                         (int(x1), int(y1)),
@@ -502,8 +501,6 @@ class Kpt():
         [LEFT_EYE, LEFT_EAR],
         [LEFT_EAR, LEFT_SHOULDER],
         [RIGHT_EAR, RIGHT_SHOULDER]]
-
-        
         
         kpt_color = np.array([Palettes.BGR.RED for _ in range(17)])
                              
@@ -572,9 +569,10 @@ class Kpt():
     @staticmethod
     def tran_h36m_to_yolo(keypoints: np.ndarray):
         """
-        Map Human3.6M keypoints to yolo8 keypoints.
+        Map Human3.6M keypoints to yolo8 keypoints.  
+        Notice that dim 3 is confidence
         # Arguments
-            keypoints:  Shape: (B, 17, 3), 3 is (x, y, z)
+            keypoints:  Shape: (B, 17, 3), 3 is (x, y, conf)
         # Returns
             yolo_keypoints:  List of keypoints for each detected object in yolo8 format.
         """
@@ -594,9 +592,10 @@ class Kpt():
     @staticmethod
     def tran_yolo_to_h36m(keypoints: np.ndarray):
         """
-        Map yolo8 keypoints to Human3.6M keypoints.
+        Map yolo8 keypoints to Human3.6M keypoints.  
+        Notice that dim 3 is confidence
         # Arguments
-            keypoints:  Shape: (B, 17, 3), 3 is (x, y, z)
+            keypoints:  Shape: (B, 17, 3), 3 is (x, y, conf)
         # Returns
             h36m_keypoints:  List of keypoints for each detected object in h36m format.
         """
@@ -613,6 +612,8 @@ class Kpt():
             mapped_keypoints[Kpt.H36M.HEADTOP] = mapped_keypoints[Kpt.H36M.HEAD_EXTRA] + mapped_keypoints[Kpt.H36M.HEAD_EXTRA] - mapped_keypoints[Kpt.H36M.NECK_EXTRA]
             h36m_keypoints.append(mapped_keypoints)  # Append the mapped keypoints for the current batch
         return np.array(h36m_keypoints)
+    
+    
     
     
     

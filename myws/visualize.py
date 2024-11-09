@@ -8,13 +8,13 @@ import glob
 import matplotlib.animation
 from matplotlib.gridspec import GridSpec
 from typing import List
-import torch
-def visualize_2d_pose(kps_output:torch.Tensor, 
+def visualize_2d_pose(kps_output:np.ndarray, 
                       ax2,
                       bones:list,
                       limb_color:list,
                       conf:float=0.5,
                       if_invert_y=True,
+                      pause_time = 0.02
                       ):
     """
     Visualize 2D pose via matplotlib.
@@ -50,7 +50,7 @@ def visualize_2d_pose(kps_output:torch.Tensor,
                 bones=bones, 
                 limb_color= limb_color, 
                 normalize=False)
-    plt.pause(0.05)
+    plt.pause(pause_time)
     
 
 
