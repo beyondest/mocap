@@ -6,6 +6,8 @@ onnx_file = 'D:/VS_ws/python/mocap/weights/best.onnx'
 trt_file = 'path/to/trt_engine.engine'  # .trt or .engine file path
 trt_max_batch_size = 1              # max batch size for TRT engine, this is set during engine creation
 trt_input_dtype = np.float16        # fp16 or fp32
+video_path = 'D:/VS_ws/python/mocap/myws/data/speedup.mp4'
+
 
 class MODEL_TYPE():
     ONNX = "onnx"
@@ -14,5 +16,7 @@ class MODEL_TYPE():
 model_type = MODEL_TYPE.ONNX
 
 VISUALIZE = True
+USE_CAMERA = False   # if True, use camera to capture video, otherwise use video file
+
 
 

@@ -29,45 +29,29 @@ def demo():
         trt_engine = TRT_Engine_2(trt_file,trt_max_batch_size)
     else:
         pass
-    # 20 colors, index 16 is [0, 255, 0] Green, index 0 is [255, 128, 0] Blue, index 9 is [51, 153, 255] Orange
-    palette = numpy.array([[255, 128, 0],   [255, 153, 51], [255, 178, 102], 
-                           [230, 230, 0],   [255, 153, 255],[153, 204, 255],
-                           [255, 102, 255], [255, 51, 255], [102, 178, 255],
-                           [51, 153, 255],  [255, 153, 153],[255, 102, 102],
-                           [255, 51, 51],   [153, 255, 153],[102, 255, 102],
-                           [51, 255, 51],   [0, 255, 0],    [0, 0, 255], 
-                           [255, 0, 0],     [255, 255, 255]],
-                          dtype=numpy.uint8)
-    # which 2 keypoint will bind together to form a limb
-    skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9],
-                [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
-    # keypoint color
-    # 17 keypoints
-    kpt_color = palette[[16, 16, 16,
-                         16, 16,  0,
-                         0,   0,  0, 
-                         0,   0,  9,
-                         9,   9,  9, 
-                         9,   9]]
-    # limb color
-    limb_color = palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
+
+    skeleton = Kpt.Yolov8.skeleton
+    kpt_color = Kpt.Yolov8.kpt_color
+    limb_color = Kpt.Yolov8.limb_color
     model = torch.load(weights_file, map_location='cpu')['model'].float()
     stride = int(max(model.stride.cpu().numpy()))
 
     model.half()
     model.eval()
-
-    camera = cv2.VideoCapture(0)
-    # Check if camera opened successfully
-    if not camera.isOpened():
-        print("Error opening video stream or file")
-    # Read until video is completed
+    if USE_CAMERA:
+        vd = cv2.VideoCapture(0)
+    else:
+        vd = cv2.VideoCapture(video_path)
+    if not vd.isOpened():
+        info = "camera" if USE_CAMERA else f"video : {video_path}"
+        print(f"Error opening {info}")
+        
     try:
-        while camera.isOpened():
+        while vd.isOpened():
             
             # Capture frame-by-frame
             t1 = time.perf_counter()
-            success, frame = camera.read()
+            success, frame = vd.read()
             if success:
                 image = frame.copy()
                 shape = image.shape[:2]  # current shape [height, width]
@@ -115,7 +99,7 @@ def demo():
     except Exception as e:
         print(f"Get Error : {e}")  
       
-    camera.release()
+    vd.release()
     cv2.destroyAllWindows()
     print("All Resources released")
 
@@ -136,7 +120,7 @@ def main():
     #     torch.distributed.init_process_group(backend='nccl', init_method='env://')
     util.setup_seed()
     #util.setup_multi_processes()
-    #maxmium_performance()
+    maxmium_performance()
     demo()
 
 

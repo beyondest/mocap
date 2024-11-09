@@ -127,6 +127,7 @@ class TRT_Engine_2:
             outlist.append(self.outputs[batchsize-1][output_index].host)
        
         return outlist
+    
 class Onnx_Engine:
     class Standard_Data:
         def __init__(self) -> None:
@@ -246,8 +247,7 @@ def visualize_detections(frame:np.ndarray,
                          kps_output,
                          kpt_color,
                          skeleton,
-                         limb_color,
-                         visualize=True):
+                         limb_color):
     """
     Visualizes bounding boxes and keypoints on the given frame.
 
@@ -291,11 +291,11 @@ def visualize_detections(frame:np.ndarray,
 
         # Draw skeleton lines
         for i, sk in enumerate(skeleton):
-            pos1 = (int(kpt[(sk[0] - 1), 0]), int(kpt[(sk[0] - 1), 1]))
-            pos2 = (int(kpt[(sk[1] - 1), 0]), int(kpt[(sk[1] - 1), 1]))
+            pos1 = (int(kpt[(sk[0]), 0]), int(kpt[(sk[0]), 1]))
+            pos2 = (int(kpt[(sk[1]), 0]), int(kpt[(sk[1]), 1]))
             if kpt.shape[-1] == 3:
-                conf1 = kpt[(sk[0] - 1), 2]
-                conf2 = kpt[(sk[1] - 1), 2]
+                conf1 = kpt[(sk[0]), 2]
+                conf2 = kpt[(sk[1]), 2]
                 if conf1 < 0.5 or conf2 < 0.5:
                     continue
             if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
@@ -443,62 +443,183 @@ def maxmium_performance():
     environ.pop('MKL_NUM_THREADS', None)  # Remove if it exists
 
 
-class Yolov8_Keypoints():
-    NOSE: int = 0
-    LEFT_EYE: int = 1
-    RIGHT_EYE: int = 2
-    LEFT_EAR: int = 3
-    RIGHT_EAR: int = 4
-    LEFT_SHOULDER: int = 5
-    RIGHT_SHOULDER: int = 6
-    LEFT_ELBOW: int = 7
-    RIGHT_ELBOW: int = 8
-    LEFT_WRIST: int = 9
-    RIGHT_WRIST: int = 10
-    LEFT_HIP: int = 11
-    RIGHT_HIP: int = 12
-    LEFT_KNEE: int = 13
-    RIGHT_KNEE: int = 14
-    LEFT_ANKLE: int = 15
-    RIGHT_ANKLE: int = 16
+
+class Palettes():
+    class BGR:
+        RED = (0, 0, 255)
+        GREEN = (0, 255, 0)
+        BLUE = (255, 0, 0)
+        YELLOW = (0, 255, 255)
+        PURPLE = (255, 0, 255)
+    class RGB:
+        RED = (255, 0, 0)
+        GREEN = (0, 255, 0)
+        BLUE = (0, 0, 255)
+        YELLOW = (255, 255, 0)
+        PURPLE = (255, 0, 255)
+            
+class Kpt():
+
+    class Yolov8():
+        # Keypoint indices
+        NOSE = 0
+        LEFT_EYE = 1            # No mapping in H36M
+        RIGHT_EYE = 2           # No mapping in H36M
+        LEFT_EAR = 3            # No mapping in H36M
+        RIGHT_EAR = 4           # No mapping in H36M
+        LEFT_SHOULDER = 5
+        RIGHT_SHOULDER = 6
+        LEFT_ELBOW = 7
+        RIGHT_ELBOW = 8
+        LEFT_WRIST = 9
+        RIGHT_WRIST = 10
+        LEFT_HIP = 11
+        RIGHT_HIP = 12
+        LEFT_KNEE = 13
+        RIGHT_KNEE = 14
+        LEFT_ANKLE = 15
+        RIGHT_ANKLE = 16
+        
+        
+        # Yolov8 19 bones
+        skeleton = [
+        [LEFT_ANKLE, LEFT_KNEE],
+        [LEFT_KNEE, LEFT_HIP],
+        [RIGHT_ANKLE, RIGHT_KNEE],
+        [RIGHT_KNEE, RIGHT_HIP],
+        [LEFT_HIP, RIGHT_HIP],
+        [LEFT_SHOULDER, LEFT_HIP],
+        [RIGHT_SHOULDER, RIGHT_HIP],
+        [LEFT_SHOULDER, RIGHT_SHOULDER],
+        [LEFT_SHOULDER, LEFT_ELBOW],
+        [RIGHT_SHOULDER, RIGHT_ELBOW],
+        [LEFT_ELBOW, LEFT_WRIST],
+        [RIGHT_ELBOW, RIGHT_WRIST],
+        [LEFT_EYE, RIGHT_EYE],
+        [NOSE, RIGHT_EYE],
+        [NOSE, LEFT_EYE],
+        [RIGHT_EYE, RIGHT_EAR],
+        [LEFT_EYE, LEFT_EAR],
+        [LEFT_EAR, LEFT_SHOULDER],
+        [RIGHT_EAR, RIGHT_SHOULDER]]
+
+        
+        
+        kpt_color = np.array([Palettes.BGR.RED for _ in range(17)])
+                             
+        limb_color = np.array([Palettes.BGR.RED for _ in range(19)])
+
+    class H36M():
+        # Keypoint indices
+        PELVIS_EXTRA = 0    # No mapping in Yolov8
+        LEFT_HIP_EXTRA = 1
+        LEFT_KNEE = 2
+        LEFT_ANKLE = 3
+        RIGHT_HIP_EXTRA = 4
+        RIGHT_KNEE = 5
+        RIGHT_ANKLE = 6
+        SPINE_EXTRA = 7     # No mapping in Yolov8
+        NECK_EXTRA = 8      # No mapping in Yolov8
+        HEAD_EXTRA = 9
+        HEADTOP = 10        # No mapping in Yolov8
+        LEFT_SHOULDER = 11
+        LEFT_ELBOW = 12
+        LEFT_WRIST = 13
+        RIGHT_SHOULDER = 14
+        RIGHT_ELBOW = 15
+        RIGHT_WRIST = 16
+        # H36M 16 bones
+        skeleton = [
+        [PELVIS_EXTRA, LEFT_HIP_EXTRA],
+        [LEFT_HIP_EXTRA, LEFT_KNEE],
+        [LEFT_KNEE, LEFT_ANKLE],
+        [PELVIS_EXTRA, RIGHT_HIP_EXTRA],
+        [RIGHT_HIP_EXTRA, RIGHT_KNEE],
+        [RIGHT_KNEE, RIGHT_ANKLE],
+        [PELVIS_EXTRA, SPINE_EXTRA],
+        [SPINE_EXTRA, NECK_EXTRA],
+        [NECK_EXTRA, HEAD_EXTRA],
+        [HEAD_EXTRA, HEADTOP],
+        [NECK_EXTRA, LEFT_SHOULDER],
+        [LEFT_SHOULDER, LEFT_ELBOW],
+        [LEFT_ELBOW, LEFT_WRIST],
+        [NECK_EXTRA, RIGHT_SHOULDER],
+        [RIGHT_SHOULDER, RIGHT_ELBOW],
+        [RIGHT_ELBOW, RIGHT_WRIST]]
+
+        kpt_color = np.array([Palettes.BGR.RED for _ in range(17)])
+
+        limb_color = np.array([Palettes.BGR.RED for _ in range(16)])
+
+
+    yolo_to_h36m = {
+        Yolov8.NOSE: H36M.HEAD_EXTRA,    # NOSE -> head_extra
+        Yolov8.LEFT_SHOULDER: H36M.LEFT_SHOULDER,  # LEFT_SHOULDER -> left_shoulder
+        Yolov8.RIGHT_SHOULDER: H36M.RIGHT_SHOULDER,  # RIGHT_SHOULDER -> right_shoulder
+        Yolov8.LEFT_ELBOW: H36M.LEFT_ELBOW,  # LEFT_ELBOW -> left_elbow
+        Yolov8.RIGHT_ELBOW: H36M.RIGHT_ELBOW,  # RIGHT_ELBOW -> right_elbow
+        Yolov8.LEFT_WRIST: H36M.LEFT_WRIST,  # LEFT_WRIST -> left_wrist
+        Yolov8.RIGHT_WRIST: H36M.RIGHT_WRIST,  # RIGHT_WRIST -> right_wrist
+        Yolov8.LEFT_HIP: H36M.LEFT_HIP_EXTRA,  # LEFT_HIP -> left_hip_extra
+        Yolov8.RIGHT_HIP: H36M.RIGHT_HIP_EXTRA,  # RIGHT_HIP -> right_hip_extra
+        Yolov8.LEFT_KNEE: H36M.LEFT_KNEE,  # LEFT_KNEE -> left_knee
+        Yolov8.RIGHT_KNEE: H36M.RIGHT_KNEE,  # RIGHT_KNEE -> right_knee
+        Yolov8.LEFT_ANKLE: H36M.LEFT_ANKLE,  # LEFT_ANKLE -> left_ankle
+        Yolov8.RIGHT_ANKLE: H36M.RIGHT_ANKLE   # RIGHT_ANKLE -> right_ankle
+    }
+    h36m_to_yolo = {v: k for k, v in yolo_to_h36m.items()}
+ 
+    @staticmethod
+    def tran_h36m_to_yolo(keypoints: np.ndarray):
+        """
+        Map Human3.6M keypoints to yolo8 keypoints.
+        # Arguments
+            keypoints:  Shape: (B, 17, 3), 3 is (x, y, z)
+        # Returns
+            yolo_keypoints:  List of keypoints for each detected object in yolo8 format.
+        """
+        yolo_keypoints = []
+        shape = keypoints.shape[1:]
+        for kpt in keypoints:
+            mapped_keypoints = np.zeros(shape)  # Initialize mapped keypoints array
+            for h36m_id, yolo_id in Kpt.h36m_to_yolo.items():
+                mapped_keypoints[yolo_id] = kpt[h36m_id]
+            mapped_keypoints[Kpt.Yolov8.LEFT_EYE] = mapped_keypoints[Kpt.Yolov8.NOSE]
+            mapped_keypoints[Kpt.Yolov8.RIGHT_EYE] = mapped_keypoints[Kpt.Yolov8.NOSE]
+            mapped_keypoints[Kpt.Yolov8.LEFT_EAR] = mapped_keypoints[Kpt.Yolov8.NOSE]
+            mapped_keypoints[Kpt.Yolov8.RIGHT_EAR] = mapped_keypoints[Kpt.Yolov8.NOSE]
+            yolo_keypoints.append(mapped_keypoints)  # Append the mapped keypoints for the current batch
+        return np.array(yolo_keypoints)
+            
+    @staticmethod
+    def tran_yolo_to_h36m(keypoints: np.ndarray):
+        """
+        Map yolo8 keypoints to Human3.6M keypoints.
+        # Arguments
+            keypoints:  Shape: (B, 17, 3), 3 is (x, y, z)
+        # Returns
+            h36m_keypoints:  List of keypoints for each detected object in h36m format.
+        """
+        h36m_keypoints = []
+        shape = keypoints.shape[1:]
+        for kpt in keypoints:
+            mapped_keypoints = np.zeros(shape)  # Initialize mapped keypoints array
+            for yolo_id, h36m_id in Kpt.yolo_to_h36m.items():
+                mapped_keypoints[h36m_id] = kpt[yolo_id]
+            mapped_keypoints[Kpt.H36M.PELVIS_EXTRA] = (mapped_keypoints[Kpt.H36M.LEFT_HIP_EXTRA] + mapped_keypoints[Kpt.H36M.RIGHT_HIP_EXTRA]) / 2 
+            mid_shoulder = (mapped_keypoints[Kpt.H36M.LEFT_SHOULDER] + mapped_keypoints[Kpt.H36M.RIGHT_SHOULDER]) / 2
+            mapped_keypoints[Kpt.H36M.NECK_EXTRA] = (mapped_keypoints[Kpt.H36M.HEAD_EXTRA] + mid_shoulder) / 2  
+            mapped_keypoints[Kpt.H36M.SPINE_EXTRA] = (mapped_keypoints[Kpt.H36M.PELVIS_EXTRA] + mid_shoulder) / 2
+            mapped_keypoints[Kpt.H36M.HEADTOP] = mapped_keypoints[Kpt.H36M.HEAD_EXTRA] + mapped_keypoints[Kpt.H36M.HEAD_EXTRA] - mapped_keypoints[Kpt.H36M.NECK_EXTRA]
+            h36m_keypoints.append(mapped_keypoints)  # Append the mapped keypoints for the current batch
+        return np.array(h36m_keypoints)
+    
+    
+    
 
 
 
 
-# Define Human3.6M-to-YOLOv8 keypoint index mapping
-h36m_to_yolo = {
-    1: 11,   # left_hip_extra -> LEFT_HIP
-    2: 13,   # left_knee -> LEFT_KNEE
-    3: 15,   # left_ankle -> LEFT_ANKLE
-    4: 12,   # right_hip_extra -> RIGHT_HIP
-    5: 14,   # right_knee -> RIGHT_KNEE
-    6: 16,   # right_ankle -> RIGHT_ANKLE
-    9: 0,    # head_extra -> NOSE
-    11: 5,   # left_shoulder -> LEFT_SHOULDER
-    12: 7,   # left_elbow -> LEFT_ELBOW
-    13: 9,   # left_wrist -> LEFT_WRIST
-    14: 6,   # right_shoulder -> RIGHT_SHOULDER
-    15: 8,   # right_elbow -> RIGHT_ELBOW
-    16: 10   # right_wrist -> RIGHT_WRIST
-}
 
-
-
-# Define YOLOv8 to Human3.6M keypoint index mapping
-yolo_to_h36m = {
-    0: 9,    # NOSE -> head_extra
-    5: 11,   # LEFT_SHOULDER -> left_shoulder
-    6: 14,   # RIGHT_SHOULDER -> right_shoulder
-    7: 12,   # LEFT_ELBOW -> left_elbow
-    8: 15,   # RIGHT_ELBOW -> right_elbow
-    9: 13,   # LEFT_WRIST -> left_wrist
-    10: 16,  # RIGHT_WRIST -> right_wrist
-    11: 1,   # LEFT_HIP -> left_hip_extra
-    12: 4,   # RIGHT_HIP -> right_hip_extra
-    13: 2,   # LEFT_KNEE -> left_knee
-    14: 5,   # RIGHT_KNEE -> right_knee
-    15: 3,   # LEFT_ANKLE -> left_ankle
-    16: 6    # RIGHT_ANKLE -> right_ankle
-}
 
 
