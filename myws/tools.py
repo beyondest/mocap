@@ -249,7 +249,7 @@ def visualize_detections(frame:np.ndarray,
                          skeleton,
                          limb_color):
     """
-    Visualizes bounding boxes and keypoints on the given frame.
+    Visualizes conf > 0.5 bounding boxes and keypoints on the given frame.
 
     Parameters:
     - frame: The image frame on which to draw the detections.
@@ -379,17 +379,17 @@ def non_max_suppression(outputs, conf_threshold, iou_threshold, nc)->list:
 
     return output
 
-def pose_estimation_postprocess(outputs:torch.Tensor, image:np.ndarray|torch.Tensor, frame:np.ndarray, model):
+def pose_estimation_postprocess(outputs:torch.Tensor, image:np.ndarray|torch.Tensor, frame:np.ndarray, model)->tuple[torch.Tensor, torch.Tensor]:
     """
-    Process the output of the pose estimation model and return the bounding boxes and keypoints.Will remap xy to original frame size.
+    Get Box and Kpts, will remap xy to original frame size.
     # Arguments
         outputs:  Model output [1, 5 + 51, 6300] for mocap.
         image:  The input image for inference.
         frame:  The original image frame, such as the video frame.
         model:  The model used for inference.
     # Returns
-        box_output:  List of bounding boxes (x1, y1, x2, y2, score, index).
-        kps_output:  List of keypoints for each detected object.
+        box_output:  torch.Tensor, shape = (bbox_num, 6), (x1, y1, x2, y2, score, index).
+        kps_output:  torch.Tensor, shape = (bbox_num, 17, 3), (x, y, score).
     # Note
         May change orignal outputs, because of removing `output = output.clone()`
     """

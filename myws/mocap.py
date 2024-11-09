@@ -5,7 +5,7 @@ from myws.params import *
 import argparse
 import os
 import warnings
-
+from visualize import visualize_init,visualize_2d_pose
 import numpy
 import torch
 import yaml
@@ -15,14 +15,18 @@ import time
 from nets import nn
 from utils import util
 from myws.tools import *
-
+import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 numpy.set_printoptions(precision=3)
 
 
 
 @torch.no_grad()
-def demo():
+def main():
+    if VISUALIZE_PLOT:
+        fig, ax, ax2 = visualize_init()
+        plt.show(block=False)
+        
     if model_type == MODEL_TYPE.ONNX:
         onnx_engine = Onnx_Engine(onnx_file,if_offline=False)
     elif model_type == MODEL_TYPE.TRT:
@@ -83,11 +87,11 @@ def demo():
                 # NMS
                 outputs = non_max_suppression(outputs, 0.25, 0.7, model.head.nc)
                 box_output, kps_output = pose_estimation_postprocess(outputs,image,frame,model)
-                if VISUALIZE:
+                if VISUALIZE_DRAW:
                     visualize_detections(frame,box_output,kps_output,kpt_color,skeleton,limb_color)
-                else:
-                    print(f"KPS_OUTPUT : {kps_output}")
-
+                if VISUALIZE_PLOT:
+                    visualize_2d_pose(kps_output, ax2, skeleton, limb_color)
+                
                 t2 = time.perf_counter()
                 fps = round(1/(t2 - t1))
                 print(f'FPS : {fps}')
@@ -104,25 +108,16 @@ def demo():
     print("All Resources released")
 
 
-def main():
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--input-size', default=input_size, type=int)
-    # parser.add_argument('--local_rank', default=0, type=int)
-    # parser.add_argument('--demo', action='store_true')
 
-    # args = parser.parse_args()
-
-    # args.local_rank = int(os.getenv('LOCAL_RANK', 0))
-    # args.world_size = int(os.getenv('WORLD_SIZE', 1))
-
-    # if args.world_size > 1:
-    #     torch.cuda.set_device(device=-1)
-    #     torch.distributed.init_process_group(backend='nccl', init_method='env://')
-    util.setup_seed()
-    #util.setup_multi_processes()
-    maxmium_performance()
-    demo()
 
 
 if __name__ == "__main__":
+    
+    
+    util.setup_seed()
+    #util.setup_multi_processes()
+    maxmium_performance()
+    
     main()
+    
+    

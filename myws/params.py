@@ -15,7 +15,8 @@ class MODEL_TYPE():
     TRT = "trt"
 model_type = MODEL_TYPE.ONNX
 
-VISUALIZE = True
+VISUALIZE_DRAW = True       # if True, draw detections on frame
+VISUALIZE_PLOT = True    # if True, plot the skeleton using matplotlib
 USE_CAMERA = False   # if True, use camera to capture video, otherwise use video file
 
 
