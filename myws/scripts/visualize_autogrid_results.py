@@ -1,7 +1,17 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from network import *
+
+model = AutoDynamicGridLiftingNetwork(hidden_size=256,
+                                          num_block=2,
+                                          grid_shape=[5,5],
+                                          padding_mode=['c','r'],
+                                          autosgt_prior='standard')
+ckpt = torch.load('D:/VS_ws/python/mocap/weights/gt_d-gridconv_autogrids.pth.tar', map_location='cpu',weights_only=True)
+model.load_state_dict(ckpt['state_dict'])
+model.eval()
+
 
 from visualize import plot_pose_3d, plot_pose_2d
 import matplotlib.pyplot as plt
@@ -11,15 +21,17 @@ import torch
 from tools import *
 from matplotlib.gridspec import GridSpec
 from tools import Onnx_Engine
+
 datapath = "D:/Datasets/h36m/gt/test_custom_3d_unnorm.pth.tar"
 data2dpath = "D:/Datasets/h36m/gt/test_custom_2d_unnorm.pth.tar"
-onnx_path = 'D:/VS_ws/python/mocap/weights/autogrid20.onnx'
+onnx_path = 'D:/VS_ws/python/mocap/weights/grid20.onnx'
 
 key = ('S11', 'Walking', 'Walking.60457274')
+#key = ('S11', 'Posing', 'Posing 1.54138969')
 njoints = 17
 
-data3d = torch.load(datapath,encoding = 'latin1')
-data2d = torch.load(data2dpath,encoding = 'latin1')
+data3d = torch.load(datapath,encoding = 'latin1',weights_only=False)
+data2d = torch.load(data2dpath,encoding = 'latin1',weights_only=False)
 
 s11walking3d = data3d[key]
 s11walking2d = data2d[key]
@@ -47,19 +59,22 @@ bones = Kpt.H36M.skeleton
 limb_color = [Palettes.RGB.RED for i in range(len(bones))]
 
 
-onnx_engine = Onnx_Engine(onnx_path)
+#onnx_engine = Onnx_Engine(onnx_path)
 
 def update(frame):
     global t
     ax.clear()
     ax2.clear()
     p2d = (tar_2d[t] - 500) / 500
+    p2d = p2d.reshape(1, 17, 2)
     
-    output = onnx_engine.run(None,{'input': p2d.reshape(1, 17, 2)})[0].reshape(17, 3)
-    output = output * 1000
-    
-    plot_pose_3d(ax=ax, tar=tar_3d[t], 
-        pred = output, 
+    inp = torch.Tensor(p2d).float()
+    output = model(inp)
+    #output = onnx_engine.run(None,{'input':inp })[0]
+    p3d = output * 1000
+    p3d = np.asanyarray(p3d.detach().numpy())
+    plot_pose_3d(ax=ax, tar=None, 
+        pred = p3d[0], 
         bones=bones, 
         limb_color= limb_color, 
         legend=True)
@@ -100,6 +115,8 @@ plt.show()
 
     
     
+
+
 
 
 
