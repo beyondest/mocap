@@ -49,7 +49,6 @@ t = 0
 bones = Kpt.H36M.skeleton
 limb_color = [Palettes.RGB.RED for i in range(len(bones))]
 
-
 onnx_engine = Onnx_Engine(onnx_path)
 
 def update(frame):

@@ -2,8 +2,9 @@ from moviepy.editor import VideoFileClip
 import moviepy.video.fx.all as vfx
 
 # Define input and output file locations
-in_loc = './data/cut.mp4'  # Path to the input video file
-out_loc = './data/speedup.mp4'  # Path to save the output video
+in_loc = './taiji_cut2.mp4'  # Path to the input video file
+out_loc = './taiji_cut2_speedup.mp4'  # Path to save the output video
+multiplier = 2  # Speed up the video by this factor 
 
 # Load the video clip
 clip = VideoFileClip(in_loc)
@@ -15,7 +16,7 @@ print("Original FPS: {}".format(clip.fps))
 clip = clip.set_fps(30)
 
 # Speed up the video by a factor of 2 (you can change this factor)
-final = clip.fx(vfx.speedx, 3)
+final = clip.fx(vfx.speedx, multiplier)
 
 # Save the modified video with audio
 final.write_videofile(out_loc, audio=True)

@@ -5,7 +5,7 @@ from myws.params import *
 import argparse
 import os
 import warnings
-from visualize import visualize_init,visualize_2d_pose
+from visualize import visualize_init,visualize_2d_pose,visualize_3d_pose
 import numpy
 import torch
 import yaml
@@ -16,6 +16,7 @@ from nets import nn
 from utils import util
 from myws.tools import *
 import matplotlib.pyplot as plt
+from network import semantic_grid_trans, inverse_semantic_grid_trans
 warnings.filterwarnings("ignore")
 numpy.set_printoptions(precision=3)
 
@@ -33,7 +34,8 @@ def main():
         trt_engine = TRT_Engine_2(trt_file,trt_max_batch_size)
     else:
         pass
-
+    if TRANS_TO_3D:
+        onnx_engine2 = Onnx_Engine(onnx_file2,if_offline=False)
     skeleton = Kpt.Yolov8.skeleton if not TRANS_H36M else Kpt.H36M.skeleton
     kpt_color = Kpt.Yolov8.kpt_color if not TRANS_H36M else Kpt.H36M.kpt_color
     limb_color = Kpt.Yolov8.limb_color if not TRANS_H36M else Kpt.H36M.limb_color
@@ -58,7 +60,7 @@ def main():
             success, frame = vd.read()
             if success:
                 image = frame.copy()
-                shape = image.shape[:2]  # current shape [height, width]
+                center_x, center_y = image.shape[1]//2, image.shape[0]//2
                 image = resize_image(image,target_size=(480,640),stride=stride,if_use_stride=False) # Resize to (3,480,640)
                 # Inference
                 
@@ -93,8 +95,19 @@ def main():
                     kps_output = Kpt.tran_yolo_to_h36m(kps_output)
                 if VISUALIZE_DRAW:
                     visualize_detections(frame,box_output,kps_output,kpt_color,skeleton,limb_color)
+
+                if TRANS_TO_3D:
+                    norm_kps_output = kps_output[:,:,:2]
+                    norm_kps_output = (norm_kps_output - [center_x,center_y]) / [center_x,center_y]
+                    norm_kps_output = semantic_grid_trans(norm_kps_output)
+                    p3d = onnx_engine2.run(None,{'input':norm_kps_output.astype(numpy.float32)})[0]
+                    p3d = inverse_semantic_grid_trans(p3d)
+                    p3d = p3d.reshape(1, 17, 3)
+                    
                 if VISUALIZE_PLOT:
                     visualize_2d_pose(kps_output, ax2, skeleton, limb_color)
+                    if TRANS_TO_3D:
+                        visualize_3d_pose(p3d[0], ax, skeleton,limb_color)
                 
                 t2 = time.perf_counter()
                 fps = round(1/(t2 - t1))

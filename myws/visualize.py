@@ -22,7 +22,7 @@ def visualize_2d_pose(kps_output:np.ndarray,
     Parameters
     ----------
     kps_output : n x 3 numpy array
-        Positions for n joints.
+        Positions for n joints. (x, y, conf)
     ax2 : matplotlib axis object
     bones : list of lists of integers
         Bones in skeleton.
@@ -53,7 +53,44 @@ def visualize_2d_pose(kps_output:np.ndarray,
     plt.pause(pause_time)
     
 
+def visualize_3d_pose(kps_output:np.ndarray, 
+                      ax3d,
+                      bones:list,
+                      limb_color:list,
+                      if_invert_y=True,
+                      pause_time = 0.02
+                      ):
+    """
+    Visualize 3D pose via matplotlib.
 
+    Parameters
+    ----------
+    kps_output : n x 3 numpy array
+        Positions for n joints. (x, y, z)
+    ax3d : matplotlib axis object
+    bones : list of lists of integers
+        Bones in skeleton.
+    limb_color : list of integers
+        Numbers represent which leg the joint belongs to.
+    conf : float, optional
+        Confidence threshold for keypoints. The default is 0.5.
+    if_invert_y : boolean, optional
+        Invert y-axis. The default is True.
+
+    Returns
+    -------
+    None.
+
+    """
+    ax3d.clear()
+    plot_pose_3d(ax=ax3d, 
+                 tar=None, 
+                 pred=kps_output, 
+                bones=bones, 
+                limb_color= limb_color, 
+                legend=True)
+    
+    plt.pause(pause_time)
 
 def visualize_init()->tuple:
     """
