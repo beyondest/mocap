@@ -89,13 +89,21 @@ def main():
                 # NMS
                 outputs = non_max_suppression(outputs, 0.25, 0.7, model.head.nc)
                 box_output, kps_output = pose_estimation_postprocess(outputs,image,frame,model)
-                box_output = box_output.numpy()
-                kps_output = kps_output.numpy()
+                box_output = box_output.numpy() # (box_num, )
+                kps_output = kps_output.numpy() # (box_num, 17, 3)
+                if len(box_output) == 0:
+                    print("No Person Detected")
+                    continue
+                
+                if len(box_output) > 1:
+                    box_output = box_output[0].reshape(1, -1)
+                    kps_output = kps_output[0].reshape(1, 17, 3)
+                
                 if TRANS_H36M:
                     kps_output = Kpt.tran_yolo_to_h36m(kps_output)
                 if VISUALIZE_DRAW:
                     visualize_detections(frame,box_output,kps_output,kpt_color,skeleton,limb_color)
-
+                
                 if TRANS_TO_3D:
                     norm_kps_output = kps_output[:,:,:2]
                     norm_kps_output = (norm_kps_output - [center_x,center_y]) / [center_x,center_y]
@@ -134,7 +142,9 @@ if __name__ == "__main__":
     util.setup_seed()
     #util.setup_multi_processes()
     maxmium_performance()
-    
+    if TRANS_TO_3D:
+        if not TRANS_H36M:
+            raise ValueError("if you want to transfer to 3D, please set TRANS_H36M to True")
     main()
     
     

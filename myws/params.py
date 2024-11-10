@@ -17,7 +17,7 @@ model_type = MODEL_TYPE.ONNX
 
 VISUALIZE_DRAW = True       # if True, draw detections on frame
 VISUALIZE_PLOT = True    # if True, plot the skeleton using matplotlib
-USE_CAMERA = False   # if True, use camera to capture video, otherwise use video file
+USE_CAMERA = True   # if True, use camera to capture video, otherwise use video file
 TRANS_H36M = True    # if True, use H36M skeleton, otherwise use COCO skeleton
 
 
