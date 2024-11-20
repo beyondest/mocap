@@ -57,7 +57,6 @@ def visualize_3d_pose(kps_output:np.ndarray,
                       ax3d,
                       bones:list,
                       limb_color:list,
-                      if_invert_y=True,
                       pause_time = 0.02
                       ):
     """

@@ -296,8 +296,8 @@ def visualize_detections(frame:np.ndarray,
                          skeleton:list,
                          limb_color:list):
     """
-    Visualizes conf > 0.5 bounding boxes and keypoints on the given frame.
-
+    Visualizes conf > 0.5 bounding boxes and keypoints on the given frame.  
+    Will modify the frame in place.
     Parameters:
     - frame: The image frame on which to draw the detections.
     - box_output: List of bounding boxes (x1, y1, x2, y2, score, index).
