@@ -38,7 +38,12 @@ def main():
     else:
         pass
     if TRANS_TO_3D:
-        onnx_engine2 = Onnx_Engine(onnx_file2,if_offline=False)
+        if model_type == MODEL_TYPE.ONNX:
+            onnx_engine2 = Onnx_Engine(onnx_file2,if_offline=False)
+        elif model_type == MODEL_TYPE.TRT:
+            trt_engine2 = TRT_Engine_2(trt_file2,max_batchsize=1)
+        else:
+            pass
         
     if SAVE_DATA:
         if os.path.exists(save_data_path):
@@ -76,13 +81,7 @@ def main():
                     image = numpy.expand_dims(image,axis=0)
                     image = (image / 255).astype(numpy.float32)
                     outputs = onnx_engine.run(None,{'input':image})[0]
-                    outputs = torch.from_numpy(outputs)
-                elif model_type == MODEL_TYPE.PT:
-                    image = torch.from_numpy(image)
-                    image = image.unsqueeze(0)
-                    image = image.half()
-                    image = image / 255
-                    outputs = model(image)
+
                 elif model_type == MODEL_TYPE.TRT:
                     image = numpy.expand_dims(image,axis=0)
                     image = (image / 255).astype(trt_input_dtype)
@@ -111,7 +110,13 @@ def main():
                     norm_kps_output = kps_output[:,:,:2]
                     norm_kps_output = (norm_kps_output - [center_x,center_y]) / [center_x,center_y]
                     norm_kps_output = semantic_grid_trans(norm_kps_output)
-                    p3d = onnx_engine2.run(None,{'input':norm_kps_output.astype(numpy.float32)})[0]
+                    if model_type == MODEL_TYPE.ONNX:
+                    
+                        p3d = onnx_engine2.run(None,{'input':norm_kps_output.astype(numpy.float32)})[0]
+                    elif model_type == MODEL_TYPE.TRT:
+                        p3d = trt_engine2.run({0:norm_kps_output.astype(trt_input_dtype)})[0]
+                        p3d = p3d.reshape(1, 17, 3)
+                    
                     p3d = inverse_semantic_grid_trans(p3d)
                     p3d = p3d.reshape(1, 17, 3)
                     p3d = p3d * 1000 # mm to m

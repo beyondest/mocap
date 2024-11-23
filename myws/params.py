@@ -9,6 +9,7 @@ trt_input_dtype = np.float16        # fp16 or fp32
 video_path = 'D:/VS_ws/python/mocap/myws/data/taiji_yunshou_speedup.mp4'
 onnx_file2 = 'D:/VS_ws/python/mocap/weights/grid20.onnx'
 save_data_path = 'D:/VS_ws/python/mocap/myws/data/taiji_yunshou_speedup.pkl'
+trt_file2 = 'path/to/trt_engine2.engine'  # .trt or .engine file path
 
 
 class MODEL_TYPE():
