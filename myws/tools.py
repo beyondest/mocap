@@ -16,116 +16,98 @@ except ImportError as e:
     print(e)
     print("Please install tensorrt and pycuda")
 
-
 class TRT_Engine_2:
     class HostDeviceMem(object):
-    
+
         def __init__(self, host_mem, device_mem):
             self.host = host_mem
             self.device = device_mem
-
         def __str__(self):
             return "Host:\n" + str(self.host) + "\nDevice:\n" + str(self.device)
 
         def __repr__(self):
             return self.__str__()
 
-        
     def __init__(self,
-                 trt_path:str,
-                 max_batchsize:int = 10) -> None:
-        """Only support single input binding and single output binding
-
-        Warning: idx_to_max_batchsize must include all binding index of engine, or will raise error\n
-                        include input and output binding index of engine\n
-        """
+                 trt_path: str,
+                 max_batchsize: int = 10) -> None:
         assert os.path.exists(trt_path), f"Tensorrt engine file not found: {trt_path}"
-        
+
         self.logger = trt.Logger(trt.Logger.INFO)
         self.runtime = trt.Runtime(self.logger)
         self.stream = cuda.Stream()
         with open(trt_path, 'rb') as f:
             self.engine = self.runtime.deserialize_cuda_engine(f.read())
-        
+
         self.context = self.engine.create_execution_context()
-        
+
         self.inputs = []
         self.outputs = []
         self.bindings = []
         self.input_idx_to_binding_idx = {}
-        
+        self.binding_name = self.engine.get_tensor_name(0)
+        self.shape = self.engine.get_tensor_shape(self.binding_name)
+
         for i in range(max_batchsize):
-            inputs,outputs,bindings = self.allocate_buffers(i+1)
+            inputs, outputs, bindings = self.allocate_buffers(i + 1)
             self.inputs.append(inputs)
             self.outputs.append(outputs)
             self.bindings.append(bindings)
-        
-        
-        
-    def allocate_buffers(self,batchsize:int=1):
-        """
-        Args:
-            batchsize (int, optional):  Defaults to 1.
 
-        Returns:
-            list: [inputs,outputs,bindings]
-        """
+    def allocate_buffers(self, batchsize: int = 1):
+
         inputs = []
         outputs = []
         bindings = []
-        
-        for index in range(len(self.engine)):
-            
-            shape = self.engine.get_binding_shape(self.engine[index])
-            
+
+        for i in range(self.engine.num_io_tensors):
+            binding_name = self.engine.get_tensor_name(i)
+            shape = self.engine.get_tensor_shape(binding_name)
             if shape[0] == -1:
                 shape = (batchsize, *shape[1:])
-            
-            dtype = trt.nptype(self.engine.get_binding_dtype(self.engine[index]))
-            size = trt.volume(shape) 
+            dtype = trt.nptype(self.engine.get_tensor_dtype(binding_name))
+            size = trt.volume(self.engine.get_tensor_shape(binding_name))
             host_mem = cuda.pagelocked_empty(size, dtype)
             device_mem = cuda.mem_alloc(host_mem.nbytes)
             bindings.append(int(device_mem))
 
-            if self.engine.binding_is_input(self.engine[index]):
+            if self.engine.get_tensor_mode(binding_name) == trt.TensorIOMode.INPUT:
                 inputs.append(self.HostDeviceMem(host_mem, device_mem))
-                self.input_idx_to_binding_idx.update({len(inputs)-1 : index})
-                
+                self.input_idx_to_binding_idx.update({len(inputs) - 1: binding_name})
             else:
                 outputs.append(self.HostDeviceMem(host_mem, device_mem))
-        
-        return [inputs,outputs,bindings]
-                
-    def run(self,input_idx_o_npvalue:dict)->list[np.ndarray]:
-        """
-        Only support all nodes are in same batchsize  
-        Warning: input_idx_o_npvalue must be {input_index:np_array,...}
-                 e.g.:
-                    {0:np.array([1,2,3,4,5,6,7,8,9,10]),
-                     3:np.array([1,2,3,4,5,6,7,8,9,10])}\n
-                     and 0,3 must be INPUT binding index of engine
-        Returns:
-            list: [output_node0_output,output_node1_output,..]
-        """
-        outlist = []
-        
-        batchsize = input_idx_o_npvalue[0].shape[0]
-        
-        for input_index in input_idx_o_npvalue:
-            self.context.set_binding_shape(self.input_idx_to_binding_idx[input_index], (batchsize, *self.engine.get_binding_shape(self.engine[input_index])[1:]))
-            np.copyto(self.inputs[batchsize-1][input_index].host, input_idx_o_npvalue[input_index].ravel())
-            cuda.memcpy_htod_async(self.inputs[batchsize-1][input_index].device, self.inputs[batchsize-1][input_index].host, self.stream)
-        
-        self.context.execute_async_v2(bindings=self.bindings[batchsize-1], stream_handle=self.stream.handle)
-        
-        for output_index in range(len(self.outputs[batchsize-1])):
-            cuda.memcpy_dtoh_async(self.outputs[batchsize-1][output_index].host, self.outputs[batchsize-1][output_index].device, self.stream)
 
+        assert all(isinstance(x, self.HostDeviceMem) for x in inputs)
+        assert all(isinstance(x, self.HostDeviceMem) for x in outputs)
+        return [inputs, outputs, bindings]
+
+    def run(self, input_idx_o_npvalue: dict) -> list[np.ndarray]:
+        outlist = []
+        batchsize = input_idx_o_npvalue[0].shape[0]
+
+        for input_index in input_idx_o_npvalue:
+            binding_name = self.input_idx_to_binding_idx[input_index]
+            self.context.set_input_shape(binding_name, (batchsize, *self.shape[1:]))
+            np.copyto(self.inputs[batchsize - 1][input_index].host, input_idx_o_npvalue[input_index].ravel())
+            cuda.memcpy_htod_async(self.inputs[batchsize - 1][input_index].device,
+                                   self.inputs[batchsize - 1][input_index].host, self.stream)
+
+        assert isinstance(self.inputs[batchsize - 1], list)
+
+        batch_bindings = self.bindings[batchsize - 1]
+        for i in range(self.engine.num_io_tensors):
+            binding_name = self.engine.get_tensor_name(i)
+            self.context.set_tensor_address(binding_name, batch_bindings[i])
+
+        self.context.execute_async_v3(stream_handle=self.stream.handle)
+
+        for output_index in range(len(self.outputs[batchsize - 1])):
+            cuda.memcpy_dtoh_async(self.outputs[batchsize - 1][output_index].host,
+                                   self.outputs[batchsize - 1][output_index].device, self.stream)
         self.stream.synchronize()
-        
-        for output_index in  range(len(self.outputs[batchsize-1])):
-            outlist.append(self.outputs[batchsize-1][output_index].host)
-       
+
+        for output_index in range(len(self.outputs[batchsize - 1])):
+            outlist.append(self.outputs[batchsize - 1][output_index].host)
         return outlist
     
 class Onnx_Engine:
@@ -135,7 +117,6 @@ class Onnx_Engine:
             
         def save_results(self, results: np.ndarray):
             self.result = results
-        
         
     def __init__(self,
                  filename: str,
