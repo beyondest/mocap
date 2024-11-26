@@ -102,7 +102,7 @@ def visualize_init()->tuple:
     ax2 : matplotlib 2d axis object
 
     """
-    fig = plt.figure(figsize=(15, 5), dpi=100)
+    fig = plt.figure(figsize=(6, 3), dpi=100)
     gs = GridSpec(1, 2, figure=fig)  
     ax = fig.add_subplot(gs[0], projection='3d')  
     ax2 = fig.add_subplot(gs[1])  

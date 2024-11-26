@@ -13,8 +13,9 @@ try:
     import pycuda.autoinit
     
 except ImportError as e:
-    print(e)
-    print("Please install tensorrt and pycuda")
+    # print(e)
+    # print("Please install tensorrt and pycuda")
+    pass
 
 class TRT_Engine_2:
     class HostDeviceMem(object):
@@ -335,7 +336,7 @@ def visualize_detections(frame:np.ndarray,
                         thickness=2, lineType=cv2.LINE_AA)
 
     # Display the frame
-    cv2.imshow('Frame', frame)
+    cv2.imshow('yolov8', frame)
     cv2.waitKey(1)
 def wh2xy(x):
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)

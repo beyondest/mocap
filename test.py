@@ -1,12 +1,22 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
-# 假设输入数组为 1x17x2 形状
-data = np.random.rand(1, 17, 2)  # 示例数据
-d = np.random.rand(480,640)
-# 获取中心（shape），可以使用数组的中间点，或者手动指定值
-center_x, center_y = data.shape[1] / 2, data.shape[2] / 2
+# 设置 matplotlib 使用的后端
+import matplotlib
+#matplotlib.use('TkAgg')
 
-# 计算偏移，normalize 使其中心为 shape
-normalized_data = data - [center_x, center_y]
+# 创建数据
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
 
-print("Normalized data:", normalized_data)
+# 创建一个图形窗口并设置初始大小
+fig = plt.figure(figsize=(8, 6))  # 初始宽为8英寸，高为6英寸
+
+# 绘制图形
+plt.plot(x, y)
+plt.title("Adjustable Window Size Example")
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+
+# 显示图形，启动交互模式
+plt.show()

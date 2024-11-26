@@ -30,7 +30,8 @@ def main():
     if VISUALIZE_PLOT:
         fig, ax, ax2 = visualize_init()
         plt.show(block=False)
-
+    if VISUALIZE_DRAW:
+        cv2.namedWindow('yolov8', cv2.WINDOW_FREERATIO)
     if model_type == MODEL_TYPE.ONNX:
         onnx_engine = Onnx_Engine(onnx_file,if_offline=False)
     elif model_type == MODEL_TYPE.TRT:
@@ -87,9 +88,10 @@ def main():
                     image = (image / 255).astype(trt_input_dtype)
                     outputs = trt_engine.run({0:image})[0]
                     outputs = outputs.reshape(1, 56, -1)
-                    outputs = torch.from_numpy(outputs)
                 else:
                     raise NotImplementedError(f"Model type {model_type} is not supported, only support onnx, pt and trt")
+                outputs = torch.from_numpy(outputs)
+                
                 # NMS
                 outputs = non_max_suppression(outputs, 0.25, 0.7, model.head.nc)
                 box_output, kps_output = pose_estimation_postprocess(outputs,image,frame,model)
@@ -132,7 +134,7 @@ def main():
                         pickle.dump(p3d[0],f)
                 t2 = time.perf_counter()
                 fps = round(1/(t2 - t1))
-                print(f'FPS : {fps}')
+                #print(f'FPS : {fps}')
             else:
                 print("End of Video")
                 break
