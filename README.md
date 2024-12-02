@@ -1,9 +1,9 @@
 # Motion Capture From Monocular Camera
 
-This project aims to capture 3D skeletal keypoints from a monocular camera. It combines several components to achieve this functionality.
-Gif file:
+This project aims to capture 3D skeletal keypoints from a monocular camera. It combines several components to achieve this functionality. Only for personal learning purposes.
 
-![Demo](./myws/notes/re)
+### Demo
+![Demo](./myws/notes/result.gif)
 
 ### Workflow
 
