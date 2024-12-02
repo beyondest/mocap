@@ -1,3 +1,8 @@
+# Customized YOLOv8 model
+# Official  Customized
+# CSPNet -> DarkNet 
+# PANet -> DarkFPN 
+
 import math
 
 import torch

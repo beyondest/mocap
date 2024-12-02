@@ -2,8 +2,8 @@ from moviepy.editor import VideoFileClip
 import moviepy.video.fx.all as vfx
 
 # Define input and output file locations
-in_loc = './taiji_cut2.mp4'  # Path to the input video file
-out_loc = './taiji_cut2_speedup.mp4'  # Path to save the output video
+in_loc = './result.mp4'  # Path to the input video file
+out_loc = './result0.mp4'  # Path to save the output video
 multiplier = 2  # Speed up the video by this factor 
 
 # Load the video clip

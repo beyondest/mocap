@@ -1,7 +1,7 @@
 
 
 | Human3.6M Keypoint      | Index | YOLOv8 Approximate Keypoint | Index |
-|--------------------------|-------|-----------------------------|-------|
+|-----------------------  |-------|-----------------------------|-------|
 | 骨盆 (pelvis_extra)     | 0     | 无对应点                     | -     |
 | 左臀 (left_hip_extra)   | 1     | LEFT_HIP                    | 11    |
 | 左膝 (left_knee)        | 2     | LEFT_KNEE                   | 13    |

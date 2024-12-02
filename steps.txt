@@ -1,6 +1,0 @@
-
-打开代理，如果是clash，在python3.10的虚拟环境里
-pip install -r requirementes.txt --proxy=https://127.0.0.1:7890
-然后
-yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
-成功的话在当前目录就会有一个runs文件夹，里面有结果
