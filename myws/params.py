@@ -12,7 +12,7 @@ trt_max_batch_size = 1              # max batch size for TRT engine, this is set
 trt_input_dtype = np.float16        # fp16 or fp32
 video_path = os.path.join(root_path, 'myws/notes/taiji_yunshou_speedup.mp4').replace("\\", "/")
 onnx_file2 = os.path.join(root_path, 'weights/grid20.onnx').replace("\\", "/")
-save_data_path = os.path.join(root_path, 'myws/data/taiji_yunshou_speedup.pkl').replace("\\", "/")
+save_data_path = os.path.join(root_path, 'myws/output3D_keypoints.pkl').replace("\\", "/")
 trt_file2 = os.path.join(root_path, 'weights/grid20.engine').replace("\\", "/")
 
 
