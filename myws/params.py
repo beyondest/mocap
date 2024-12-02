@@ -1,15 +1,19 @@
 import numpy as np
+import os
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")).replace("\\", "/")
+
 input_size = 640
-yaml_file = 'D:/VS_ws/python/mocap/utils/args.yaml'
-weights_file = 'D:/VS_ws/python/mocap/weights/best.pt'
-onnx_file = 'D:/VS_ws/python/mocap/weights/best20.onnx'
+
+yaml_file = os.path.join(root_path, 'utils/args.yaml').replace("\\", "/")
+weights_file = os.path.join(root_path, 'weights/best.pt').replace("\\", "/")
+onnx_file = os.path.join(root_path, 'weights/best20.onnx').replace("\\", "/")
 trt_file = 'path/to/trt_engine.engine'  # .trt or .engine file path
 trt_max_batch_size = 1              # max batch size for TRT engine, this is set during engine creation
 trt_input_dtype = np.float16        # fp16 or fp32
-video_path = 'D:/VS_ws/python/mocap/myws/data/taiji_yunshou_speedup.mp4'
-onnx_file2 = 'D:/VS_ws/python/mocap/weights/grid20.onnx'
-save_data_path = 'D:/VS_ws/python/mocap/myws/data/taiji_yunshou_speedup.pkl'
-trt_file2 = 'D:/VS_ws/python/mocap/weights/grid20.engine'  # .trt or .engine file path
+video_path = os.path.join(root_path, 'myws/notes/taiji_yunshou_speedup.mp4').replace("\\", "/")
+onnx_file2 = os.path.join(root_path, 'weights/grid20.onnx').replace("\\", "/")
+save_data_path = os.path.join(root_path, 'myws/data/taiji_yunshou_speedup.pkl').replace("\\", "/")
+trt_file2 = os.path.join(root_path, 'weights/grid20.engine').replace("\\", "/")
 
 
 class MODEL_TYPE():
@@ -26,4 +30,4 @@ TRANS_H36M = True    # if True, use H36M skeleton, otherwise use COCO skeleton
 
 
 TRANS_TO_3D = True
-SAVE_DATA = False
+SAVE_DATA = True

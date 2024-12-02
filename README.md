@@ -12,6 +12,14 @@ This project aims to capture 3D skeletal keypoints from a monocular camera. It c
 3. The resulting 3D keypoints are saved into a `.pkl` file.
 4. A **Blender add-on** script is planned to read the `.pkl` file and generate character animations (this feature is still under development).
 
+### Usage
+
+`pip install -r requirements.txt`
+
+Modify paths in 'myws/params.py'
+`python myws/mocap.py`
+
+
 ### Credits and Acknowledgments
 
 This project mainly integrates existing works. The core components can be found in the following repositories:
