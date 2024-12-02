@@ -16,7 +16,6 @@ This project aims to capture 3D skeletal keypoints from a monocular camera. It c
 
 `pip install -r requirements.txt`
 
-Modify paths in 'myws/params.py'
 `python myws/mocap.py`
 
 
