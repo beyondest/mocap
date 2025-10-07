@@ -4,6 +4,7 @@ This project aims to capture 3D skeletal keypoints from a monocular camera. It c
 
 ### Demo
 ![Demo](./myws/notes/result.gif)
+![Demo](./myws/notes/panda.gif)
 
 ### Workflow
 
